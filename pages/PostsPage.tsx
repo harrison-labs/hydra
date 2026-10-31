@@ -65,7 +65,7 @@ export default function PostsPage({
     data: posts,
     loadMoreData: loadMorePosts,
     refreshData: refreshPosts,
-    modifyData: modifyPosts,
+    updateData,
     deleteData: deletePosts,
     fullyLoaded,
     hitFilterLimit,
@@ -181,9 +181,7 @@ export default function PostsPage({
           renderItem={({ item }) => (
             <PostComponent
               post={item}
-              setPost={(newPost) => {
-                modifyPosts([newPost]);
-              }}
+              updatePost={(change) => updateData(item, change)}
               deletePost={() => {
                 deletePosts([item]);
               }}

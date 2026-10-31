@@ -10,6 +10,7 @@ export type RedditDataObject = { id: string; type: string; after: string };
 
 type ApiOptions = {
   depaginate?: boolean;
+  requireOk?: boolean;
   requireAuth?: boolean;
   body?: { [key: string]: any };
   dontJsonifyResponse?: boolean;
@@ -47,6 +48,10 @@ export async function api(
    * so we set an expiration date of 10,000 days in the future.
    */
   await RedditCookies.persistSessionCookies();
+
+  if (apiOptions.requireOk && !res.ok) {
+    throw new Error("Reddit could not confirm the vote");
+  }
 
   if (apiOptions.dontJsonifyResponse) {
     return await res.text();

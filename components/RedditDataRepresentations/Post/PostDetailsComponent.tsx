@@ -11,7 +11,7 @@ import { View, Text, StyleSheet, Share, Alert } from "react-native";
 import PostMedia from "./PostParts/PostMedia";
 import SubredditIcon from "./PostParts/SubredditIcon";
 import { summarizePostDetails, summarizePostComments } from "../../../api/AI";
-import { PostDetail, vote } from "../../../api/PostDetail";
+import { PostDetail } from "../../../api/PostDetail";
 import { VoteOption } from "../../../api/Posts";
 import { saveItem } from "../../../api/Save";
 import { ModalContext } from "../../../contexts/ModalContext";
@@ -24,6 +24,11 @@ import { useRoute, useURLNavigation } from "../../../utils/navigation";
 import NewComment from "../../Modals/NewComment";
 import Time from "../../../utils/Time";
 import { Touchable } from "react-native-gesture-handler";
+import usePostVote from "../../../utils/usePostVote";
+import useVoteBounce from "../../../utils/useVoteBounce";
+import Animated from "react-native-reanimated";
+
+const AnimatedFeather = Animated.createAnimatedComponent(Feather);
 
 type Summary = {
   post: string | null;
@@ -58,13 +63,16 @@ export default function PostDetailsComponent({
 
   const contextDepth = Number(new RedditURL(url).getQueryParam("context") ?? 0);
 
-  const voteOnPost = async (voteOption: VoteOption) => {
-    const result = await vote(postDetail, voteOption);
-    setPostDetail({
-      ...postDetail,
-      upvotes: postDetail.upvotes - postDetail.userVote + result,
-      userVote: result,
-    });
+  const pressVote = usePostVote(postDetail, (change) =>
+    setPostDetail((current) =>
+      current?.name === postDetail.name ? change(current) : current,
+    ),
+  );
+  const upBounce = useVoteBounce();
+  const downBounce = useVoteBounce();
+  const voteOnPost = (direction: VoteOption) => {
+    (direction === VoteOption.UpVote ? upBounce : downBounce).bounce();
+    pressVote(direction);
   };
 
   const getSummary = async () => {
@@ -294,7 +302,8 @@ export default function PostDetailsComponent({
           animationDuration={{ in: 0, out: 150 }}
           onPress={() => voteOnPost(VoteOption.UpVote)}
         >
-          <Feather
+          <AnimatedFeather
+            style={upBounce.style}
             name="arrow-up"
             size={32}
             color={
@@ -318,7 +327,8 @@ export default function PostDetailsComponent({
           animationDuration={{ in: 0, out: 150 }}
           onPress={() => voteOnPost(VoteOption.DownVote)}
         >
-          <Feather
+          <AnimatedFeather
+            style={downBounce.style}
             name="arrow-down"
             size={32}
             color={
@@ -338,11 +348,13 @@ export default function PostDetailsComponent({
           activeOpacity={0.2}
           animationDuration={{ in: 0, out: 150 }}
           onPress={async () => {
-            await saveItem(postDetail, !postDetail.saved);
-            setPostDetail({
-              ...postDetail,
-              saved: !postDetail.saved,
-            });
+            const saved = !postDetail.saved;
+            await saveItem(postDetail, saved);
+            setPostDetail((current) =>
+              current?.name === postDetail.name
+                ? { ...current, saved }
+                : current,
+            );
           }}
         >
           <FontAwesome

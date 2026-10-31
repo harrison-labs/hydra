@@ -6,7 +6,9 @@ import { openExternalLink } from "../../../utils/openExternalLink";
 import CompactPostMedia from "./PostParts/CompactPostMedia";
 import PostMedia from "./PostParts/PostMedia";
 import SubredditIcon from "./PostParts/SubredditIcon";
-import { vote } from "../../../api/PostDetail";
+import usePostVote from "../../../utils/usePostVote";
+import useVoteBounce from "../../../utils/useVoteBounce";
+import Animated from "react-native-reanimated";
 import { Post, VoteOption } from "../../../api/Posts";
 import { saveItem } from "../../../api/Save";
 import { URLRoutes } from "../../../app/stack";
@@ -28,16 +30,18 @@ import useComponentActions from "../../../utils/useComponentActions";
 import useContextMenu from "../../../utils/useContextMenu";
 import { Touchable } from "react-native-gesture-handler";
 
+const AnimatedFeather = Animated.createAnimatedComponent(Feather);
+
 type PostComponentProps = {
   post: Post;
-  setPost: (post: Post) => void;
+  updatePost: (change: (current: Post) => Post) => void;
   deletePost?: () => void;
   onPostOpen?: (url: string) => void;
 };
 
 export default function PostComponent({
   post,
-  setPost,
+  updatePost,
   deletePost,
   onPostOpen,
 }: PostComponentProps) {
@@ -67,6 +71,12 @@ export default function PostComponent({
   const seen = isPostSeen(post);
 
   const [_, rerender] = useState(0);
+  const pressVote = usePostVote(post, updatePost);
+  const voteBounce = useVoteBounce();
+  const voteOnPost = (direction: VoteOption) => {
+    voteBounce.bounce();
+    pressVote(direction);
+  };
 
   const {
     accessibilityActions,
@@ -151,8 +161,9 @@ export default function PostComponent({
     {
       label: post.saved ? "Unsave" : "Save",
       handle: async () => {
-        await saveItem(post, !post.saved);
-        setPost({ ...post, saved: !post.saved });
+        const saved = !post.saved;
+        await saveItem(post, saved);
+        updatePost((current) => ({ ...current, saved }));
       },
     },
     {
@@ -177,15 +188,6 @@ export default function PostComponent({
       await markPostUnseen(post);
     }
     rerender((prev) => prev + 1);
-  };
-
-  const voteOnPost = async (voteOption: VoteOption) => {
-    const result = await vote(post, voteOption);
-    setPost({
-      ...post,
-      upvotes: post.upvotes - post.userVote + result,
-      userVote: result,
-    });
   };
 
   const accessibilityLabel = useMemo(() => {
@@ -442,25 +444,27 @@ export default function PostComponent({
                   </Touchable>
                 </View>
                 <View style={styles.metadataContainer}>
-                  <Feather
+                  <AnimatedFeather
                     name={
                       post.userVote === VoteOption.DownVote
                         ? "arrow-down"
                         : "arrow-up"
                     }
+                    style={voteBounce.style}
                     size={18}
                     color={currentVoteColor}
                   />
-                  <Text
+                  <Animated.Text
                     style={[
                       styles.metadataText,
+                      voteBounce.style,
                       {
                         color: currentVoteColor,
                       },
                     ]}
                   >
                     {post.upvotes}
-                  </Text>
+                  </Animated.Text>
                   <Feather
                     name="message-square"
                     size={18}

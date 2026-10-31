@@ -206,20 +206,29 @@ export async function vote(
   item: UserContent,
   voteOption: VoteOption,
 ): Promise<VoteOption> {
-  const dir = item.userVote === voteOption ? VoteOption.NoVote : voteOption;
-  await api(
+  return setVote(
+    item,
+    item.userVote === voteOption ? VoteOption.NoVote : voteOption,
+  );
+}
+
+/** Sends an absolute vote; toggling belongs to the interaction handler. */
+export async function setVote(
+  item: Pick<UserContent, "name" | "type">,
+  dir: VoteOption,
+): Promise<VoteOption> {
+  const result = await api(
     "https://www.reddit.com/api/vote",
-    {
-      method: "POST",
-    },
+    { method: "POST" },
     {
       requireAuth: true,
-      body: {
-        id: item.name,
-        dir,
-      },
+      requireOk: true,
+      body: { id: item.name, dir, api_type: "json" },
     },
   );
+  if (result?.error || result?.errors?.length || result?.json?.errors?.length) {
+    throw new Error("Reddit could not confirm the vote");
+  }
 
   if (dir !== VoteOption.NoVote) {
     if (item.type === "post" || item.type === "postDetail") {
