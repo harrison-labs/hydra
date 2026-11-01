@@ -27,7 +27,17 @@ export async function vote(
   item: UserContent,
   voteOption: VoteOption,
 ): Promise<VoteOption> {
-  const dir = item.userVote === voteOption ? VoteOption.NoVote : voteOption;
+  return setVote(
+    item,
+    item.userVote === voteOption ? VoteOption.NoVote : voteOption,
+  );
+}
+
+/** Sends an absolute vote; interaction handlers decide when to toggle it. */
+export async function setVote(
+  item: Pick<UserContent, "name">,
+  dir: VoteOption,
+): Promise<VoteOption> {
   const isPost = item.name.startsWith("t3_");
   const [operation, field, idKey] = isPost
     ? [UpdatePostVoteState, "updatePostVoteState", "postId"]

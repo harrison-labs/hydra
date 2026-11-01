@@ -8,7 +8,9 @@ import { openExternalLink } from "../../../utils/openExternalLink";
 import CompactPostMedia from "./PostParts/CompactPostMedia";
 import PostMedia from "./PostParts/PostMedia";
 import SubredditIcon from "./PostParts/SubredditIcon";
-import { vote } from "../../../api/gql/Vote";
+import usePostVote from "../../../utils/usePostVote";
+import useVoteBounce from "../../../utils/useVoteBounce";
+import Animated from "react-native-reanimated";
 import { Post, VoteOption } from "../../../api/Posts";
 import { saveItem } from "../../../api/gql/Save";
 import { URLRoutes } from "../../../app/stack";
@@ -34,16 +36,18 @@ import { shareURL } from "../../../utils/sharing";
 import { textDirectionStyle } from "../../../utils/textDirection";
 import useWriteWithToast from "../../../utils/useWriteWithToast";
 
+const AnimatedFeather = Animated.createAnimatedComponent(Feather);
+
 type PostComponentProps = {
   post: Post;
-  setPost: (post: Post) => void;
+  updatePost: (change: (current: Post) => Post) => void;
   deletePost?: () => void;
   onPostOpen?: (url: string) => void;
 };
 
 export default function PostComponent({
   post,
-  setPost,
+  updatePost,
   deletePost,
   onPostOpen,
 }: PostComponentProps) {
@@ -75,6 +79,13 @@ export default function PostComponent({
   const seen = isPostSeen(post);
 
   const [_, rerender] = useState(0);
+  const pressVote = usePostVote(post, updatePost);
+  const upBounce = useVoteBounce();
+  const downBounce = useVoteBounce();
+  const voteOnPost = (direction: VoteOption) => {
+    (direction === VoteOption.UpVote ? upBounce : downBounce).bounce();
+    pressVote(direction);
+  };
 
   const {
     accessibilityActions,
@@ -159,10 +170,11 @@ export default function PostComponent({
     {
       label: post.saved ? "Unsave" : "Save",
       handle: async () => {
+        const nextSaved = !post.saved;
         const saved = await runWrite(post.saved ? "unsave" : "save", () =>
-          saveItem(post, !post.saved),
+          saveItem(post, nextSaved),
         );
-        if (saved) setPost({ ...post, saved: !post.saved });
+        if (saved) updatePost((current) => ({ ...current, saved: nextSaved }));
       },
     },
     {
@@ -187,16 +199,6 @@ export default function PostComponent({
       await markPostUnseen(post);
     }
     rerender((prev) => prev + 1);
-  };
-
-  const voteOnPost = async (voteOption: VoteOption) => {
-    const result = await runWrite("vote", () => vote(post, voteOption));
-    if (result === undefined) return;
-    setPost({
-      ...post,
-      upvotes: post.upvotes - post.userVote + result,
-      userVote: result,
-    });
   };
 
   const accessibilityLabel = useMemo(() => {
@@ -549,7 +551,8 @@ export default function PostComponent({
                       selected: post.userVote === VoteOption.UpVote,
                     }}
                   >
-                    <Feather
+                    <AnimatedFeather
+                      style={upBounce.style}
                       name="arrow-up"
                       size={postCompactMode ? 24 : 28}
                       color={
@@ -583,7 +586,8 @@ export default function PostComponent({
                       selected: post.userVote === VoteOption.DownVote,
                     }}
                   >
-                    <Feather
+                    <AnimatedFeather
+                      style={downBounce.style}
                       name="arrow-down"
                       size={postCompactMode ? 24 : 28}
                       color={
