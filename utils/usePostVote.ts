@@ -12,7 +12,7 @@ export default function usePostVote(post: VoteItem) {
   const votes = usePostVotes();
   const session = usePostVoteSession();
   return (direction: VoteOption) => {
-    if (!UserAuth.isLoggedIn || !currentUser) {
+    if (!UserAuth.isLoggedIn || !currentUser || !session) {
       showToast({ title: "Couldn't vote", body: "Log in to vote." });
       return;
     }

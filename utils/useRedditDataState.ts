@@ -97,7 +97,7 @@ export default function useRedditDataState<T extends RedditDataObject>({
   );
 
   useEffect(() => {
-    if (!syncPostVotes) return;
+    if (!syncPostVotes || !session) return;
     return votes.subscribe(session, (change) => {
       setData((items) => {
         if (loadedSession.current !== session || !isWebSessionCurrent(session))
@@ -163,9 +163,10 @@ export default function useRedditDataState<T extends RedditDataObject>({
     track(refresh(options));
 
   const loadNextPage = async () => {
-    if (hitFilterLimit) return;
+    if (hitFilterLimit || (syncPostVotes && !session)) return;
     const started = generation.current;
-    const voteLoad = syncPostVotes ? votes.beginLoad(session) : undefined;
+    const voteLoad =
+      syncPostVotes && session ? votes.beginLoad(session) : undefined;
     try {
       const page = await loadFilteredPage(unfilteredAfter.current, [
         filterExisting,
@@ -173,7 +174,7 @@ export default function useRedditDataState<T extends RedditDataObject>({
       ]);
       if (
         started !== generation.current ||
-        (syncPostVotes && !isWebSessionCurrent(session))
+        (syncPostVotes && (!session || !isWebSessionCurrent(session)))
       )
         return;
       unfilteredAfter.current = page.cursor;
@@ -190,7 +191,7 @@ export default function useRedditDataState<T extends RedditDataObject>({
     } catch (e) {
       if (
         started === generation.current &&
-        (!syncPostVotes || isWebSessionCurrent(session))
+        (!syncPostVotes || (session && isWebSessionCurrent(session)))
       )
         showLoadError(e);
     } finally {
@@ -199,8 +200,10 @@ export default function useRedditDataState<T extends RedditDataObject>({
   };
 
   const refresh = async ({ clearBeforeLoading = false }) => {
+    if (syncPostVotes && !session) return;
     const started = ++generation.current;
-    const voteLoad = syncPostVotes ? votes.beginLoad(session) : undefined;
+    const voteLoad =
+      syncPostVotes && session ? votes.beginLoad(session) : undefined;
     if (clearBeforeLoading) {
       setData([]);
     }
@@ -211,7 +214,7 @@ export default function useRedditDataState<T extends RedditDataObject>({
       const page = await loadFilteredPage(undefined, filterRules);
       if (
         started !== generation.current ||
-        (syncPostVotes && !isWebSessionCurrent(session))
+        (syncPostVotes && (!session || !isWebSessionCurrent(session)))
       )
         return;
       unfilteredAfter.current = page.cursor;
@@ -226,7 +229,7 @@ export default function useRedditDataState<T extends RedditDataObject>({
     } catch (e) {
       if (
         started === generation.current &&
-        (!syncPostVotes || isWebSessionCurrent(session))
+        (!syncPostVotes || (session && isWebSessionCurrent(session)))
       )
         showLoadError(e);
     } finally {
@@ -297,11 +300,14 @@ export default function useRedditDataState<T extends RedditDataObject>({
   const lastAccount = useRef(account);
   const lastVoteSession = useRef(session);
   useEffect(() => {
-    if (lastAccount.current === account && lastVoteSession.current === session)
+    if (
+      lastAccount.current === account &&
+      (!syncPostVotes || lastVoteSession.current === session)
+    )
       return;
     lastAccount.current = account;
     lastVoteSession.current = session;
-    if (syncPostVotes || accessFailure) {
+    if (syncPostVotes ? session : accessFailure) {
       refreshData({ clearBeforeLoading: true });
     }
   }, [account, session]);

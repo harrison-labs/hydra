@@ -46,15 +46,8 @@ export function createPostVotes(
     session: WebSession;
     update: (change: VoteChange) => void;
   }>();
-  const loads = new Set<{
-    session: WebSession;
-    changes: Map<string, VoteChange>;
-  }>();
   const publish = (session: WebSession, change: VoteChange) => {
     if (!isCurrent(session)) return;
-    for (const load of loads)
-      if (sameSession(load.session, session))
-        load.changes.set(change.name, change);
     for (const listener of listeners)
       if (sameSession(listener.session, session)) listener.update(change);
   };
@@ -64,6 +57,18 @@ export function createPostVotes(
         .filter((op) => sameSession(op.session, session))
         .map((op) => [op.change.name, op.change]),
     );
+  const subscribe = (
+    session: WebSession,
+    update: (change: VoteChange) => void,
+  ) => {
+    const listener = { session, update };
+    listeners.add(listener);
+    if (isCurrent(session))
+      for (const change of active(session).values()) update(change);
+    return () => {
+      listeners.delete(listener);
+    };
+  };
   return {
     press(session: WebSession, item: VoteItem, direction: Vote) {
       if (!isCurrent(session)) return;
@@ -96,38 +101,29 @@ export function createPostVotes(
       }
       operation.queue.press(direction);
     },
-    subscribe(session: WebSession, update: (change: VoteChange) => void) {
-      const listener = { session, update };
-      listeners.add(listener);
-      if (isCurrent(session))
-        for (const change of active(session).values()) update(change);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
+    subscribe,
     beginLoad(session: WebSession) {
       // A response started before a vote settled must still adopt its final state.
       // This history belongs only to this load, never to later server refreshes.
-      const load = { session, changes: active(session) };
-      loads.add(load);
+      const changes = new Map<string, VoteChange>();
+      const finish = subscribe(session, (change) =>
+        changes.set(change.name, change),
+      );
       return {
         apply<T extends object>(item: T): T {
           if (!("name" in item) || typeof item.name !== "string") return item;
-          const change = load.changes.get(item.name);
+          const change = changes.get(item.name);
           return change && isCurrent(session)
             ? applyPostVote(item, change)
             : item;
         },
-        finish() {
-          loads.delete(load);
-        },
+        finish,
       };
     },
     clear() {
       const pending = [...operations.values()];
       operations.clear();
       listeners.clear();
-      loads.clear();
       for (const operation of pending) operation.queue.retire();
     },
   };

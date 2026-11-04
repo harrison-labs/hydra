@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { setVote } from "../api/gql/Vote";
 import {
-  captureWebSession,
   isWebSessionCurrent,
   WebSessionChangedError,
 } from "../api/gql/WebToken";
@@ -39,7 +38,5 @@ export function usePostVotes() {
 }
 
 export function usePostVoteSession() {
-  const { currentUser } = useContext(AccountContext);
-  const { accountId, generation } = captureWebSession(currentUser?.id ?? "");
-  return useMemo(() => ({ accountId, generation }), [accountId, generation]);
+  return useContext(AccountContext).webSession;
 }

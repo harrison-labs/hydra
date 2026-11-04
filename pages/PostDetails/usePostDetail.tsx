@@ -53,21 +53,21 @@ export default function usePostDetail(url: string, isSplitView: boolean) {
   // finish loading after a later one started.
   const latestLoad = useRef(0);
 
-  useEffect(
-    () =>
-      votes.subscribe(session, (change) => {
-        setPostDetail((current) =>
-          current &&
-          loadedSession.current === session &&
-          isWebSessionCurrent(session)
-            ? applyPostVote(current, change)
-            : current,
-        );
-      }),
-    [votes, session],
-  );
+  useEffect(() => {
+    if (!session) return;
+    return votes.subscribe(session, (change) => {
+      setPostDetail((current) =>
+        current &&
+        loadedSession.current === session &&
+        isWebSessionCurrent(session)
+          ? applyPostVote(current, change)
+          : current,
+      );
+    });
+  }, [votes, session]);
 
   const loadPostDetails = async () => {
+    if (!session) return;
     const load = ++latestLoad.current;
     const voteLoad = votes.beginLoad(session);
     setRefreshing(true);

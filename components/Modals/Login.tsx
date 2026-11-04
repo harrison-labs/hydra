@@ -68,7 +68,7 @@ const ALLOWED_URLS = [
 
 export default function Login() {
   const { theme } = useContext(ThemeContext);
-  const { logIn, doWithTempLogout } = useContext(AccountContext);
+  const { currentUser, logIn, doWithTempLogout } = useContext(AccountContext);
   const { setModal } = useContext(ModalContext);
   const [canShow, setCanShow] = useState(false);
 
@@ -89,9 +89,11 @@ export default function Login() {
     if (loginFinished.current) return;
     loginFinished.current = true;
     setModal(null);
+    const previousAccount = currentUser?.userName;
     const loginSuccess = await logIn();
     // null: the user picked another account meanwhile, so don't restore one.
     if (loginSuccess === false) {
+      if (previousAccount) await logIn(previousAccount);
       handleLoginFailed();
     } else {
       resolver.current?.(false);

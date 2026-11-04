@@ -245,6 +245,21 @@ test("loads begun during an operation retain rollback after it settles", async (
   load.finish();
 });
 
+test("finishing a load preserves its snapshot without collecting later votes", async () => {
+  const state = setup(),
+    feed = state.owner();
+  feed.press(1);
+  const load = state.votes.beginLoad(state.session);
+  load.finish();
+  feed.press(-1);
+  state.requests[0].resolve();
+  await flush();
+  state.requests[1].resolve();
+  await flush();
+  expect(feed.item.userVote).toBe(-1);
+  expect(load.apply(post()).userVote).toBe(1);
+});
+
 test("other posts and non-post records retain their fields", async () => {
   const state = setup(),
     one = state.owner(),
