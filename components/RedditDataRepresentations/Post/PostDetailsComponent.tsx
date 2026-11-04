@@ -56,6 +56,12 @@ export default function PostDetailsComponent({
   const { pushURL } = useURLNavigation();
 
   const { theme } = useContext(ThemeContext);
+  const currentVoteColor =
+    postDetail.userVote === VoteOption.UpVote
+      ? theme.upvote
+      : postDetail.userVote === VoteOption.DownVote
+        ? theme.downvote
+        : theme.subtleText;
   const runWrite = useWriteWithToast();
   const { setModal } = useContext(ModalContext);
   const { tapToCollapsePost } = useContext(PostSettingsContext);
@@ -163,12 +169,12 @@ export default function PostDetailsComponent({
               </Touchable>
             </View>
             <View style={[styles.metadataRow, { marginTop: 5 }]}>
-              <Feather name="arrow-up" size={15} color={theme.subtleText} />
+              <Feather name="arrow-up" size={15} color={currentVoteColor} />
               <Text
                 style={[
                   styles.smallText,
                   {
-                    color: theme.subtleText,
+                    color: currentVoteColor,
                     marginRight: 12,
                   },
                 ]}

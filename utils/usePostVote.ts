@@ -36,8 +36,6 @@ export default function usePostVote<T extends Votable>(
         async (next) => {
           if (identity.current !== session)
             throw new Error("Vote context changed");
-          // TEMPORARY: simulate post vote failures for simulator testing; remove after testing.
-          if (__DEV__) throw new Error("Simulated vote failure");
           await setVote(post, next);
         },
         (next) => {
