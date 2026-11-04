@@ -4,7 +4,7 @@ export function createVoteQueue(
   initial: Vote,
   send: (vote: Vote) => Promise<unknown>,
   update: (vote: Vote) => void,
-  failed: () => void,
+  failed: (error: unknown) => void,
   settled: () => void,
 ) {
   let confirmed = initial;
@@ -21,12 +21,12 @@ export function createVoteQueue(
         await send(requested);
         confirmed = requested;
       }
-    } catch {
+    } catch (error) {
       // Avoid flashing back immediately on fast failures; do not retry queued votes.
       const delay = Math.max(0, 250 - (Date.now() - lastTap));
       if (!retired && delay)
         await new Promise((resolve) => setTimeout(resolve, delay));
-      if (!retired) failed();
+      if (!retired) failed(error);
     } finally {
       desired = confirmed;
       update(confirmed);

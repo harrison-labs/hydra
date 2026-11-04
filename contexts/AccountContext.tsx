@@ -5,7 +5,10 @@ import { UserAuth } from "../api/Authentication";
 import { User } from "../api/User";
 import { resetGqlSessionState } from "../api/gql/Session";
 import { getCurrentUser } from "../api/gql/User";
-import { changeSessionCookies } from "../api/gql/WebToken";
+import {
+  changeSessionCookies,
+  invalidateWebSession,
+} from "../api/gql/WebToken";
 import KeyStore from "../utils/KeyStore";
 import RedditCookies from "../utils/RedditCookies";
 import { Alert } from "react-native";
@@ -54,6 +57,7 @@ export function AccountProvider({ children }: React.PropsWithChildren) {
     });
 
   const logInContext = async (username?: string): Promise<boolean | null> => {
+    invalidateWebSession();
     const attempt = ++sessionAttempt.current;
     try {
       resetGqlSessionState();
@@ -105,6 +109,7 @@ export function AccountProvider({ children }: React.PropsWithChildren) {
   };
 
   const doWithTempLogout = async (fn: () => Promise<boolean>) => {
+    invalidateWebSession();
     const currentUser = KeyStore.getString("currentUser");
     const wasLoggedIn = UserAuth.isLoggedIn;
     UserAuth.isLoggedIn = false;
@@ -123,6 +128,7 @@ export function AccountProvider({ children }: React.PropsWithChildren) {
   };
 
   const logOutContext = async ({ forget = true } = {}) => {
+    invalidateWebSession();
     sessionAttempt.current++;
     UserAuth.isLoggedIn = false;
     await swapSessionCookies(() => RedditCookies.clearSessionCookies());
