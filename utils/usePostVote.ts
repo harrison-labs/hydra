@@ -36,6 +36,8 @@ export default function usePostVote<T extends Votable>(
         async (next) => {
           if (identity.current !== session)
             throw new Error("Vote context changed");
+          // TEMPORARY: simulate post vote failures for simulator testing; remove after testing.
+          if (__DEV__) throw new Error("Simulated vote failure");
           await setVote(post, next);
         },
         (next) => {
@@ -52,8 +54,8 @@ export default function usePostVote<T extends Votable>(
         () => {
           if (identity.current === session && session.name === post.name)
             showToast({
-              title: "Vote failed",
-              body: "Your vote wasn't confirmed. Please try again.",
+              title: "Vote Failed",
+              body: "Your vote wasn't confirmed, Please try again.",
             });
         },
         settled,
