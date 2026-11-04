@@ -38,7 +38,7 @@ import { shareURL } from "../../../utils/sharing";
 import { textDirectionStyle } from "../../../utils/textDirection";
 import useWriteWithToast from "../../../utils/useWriteWithToast";
 
-const AnimatedFeather = Animated.createAnimatedComponent(Feather);
+const AnimatedTouchable = Animated.createAnimatedComponent(Touchable);
 
 type PostDetailsComponentProps = {
   postDetail: PostDetail;
@@ -248,9 +248,10 @@ export default function PostDetailsComponent({
           },
         ]}
       >
-        <Touchable
+        <AnimatedTouchable
           style={[
             styles.buttonsContainer,
+            upBounce.style,
             {
               backgroundColor:
                 postDetail.userVote === VoteOption.UpVote
@@ -265,8 +266,7 @@ export default function PostDetailsComponent({
             voteOnPost(VoteOption.UpVote);
           }}
         >
-          <AnimatedFeather
-            style={upBounce.style}
+          <Feather
             name="arrow-up"
             size={32}
             color={
@@ -275,10 +275,11 @@ export default function PostDetailsComponent({
                 : theme.iconPrimary
             }
           />
-        </Touchable>
-        <Touchable
+        </AnimatedTouchable>
+        <AnimatedTouchable
           style={[
             styles.buttonsContainer,
+            downBounce.style,
             {
               backgroundColor:
                 postDetail.userVote === VoteOption.DownVote
@@ -293,8 +294,7 @@ export default function PostDetailsComponent({
             voteOnPost(VoteOption.DownVote);
           }}
         >
-          <AnimatedFeather
-            style={downBounce.style}
+          <Feather
             name="arrow-down"
             size={32}
             color={
@@ -303,7 +303,7 @@ export default function PostDetailsComponent({
                 : theme.iconPrimary
             }
           />
-        </Touchable>
+        </AnimatedTouchable>
         <Touchable
           style={[
             styles.buttonsContainer,

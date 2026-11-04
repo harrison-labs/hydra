@@ -36,8 +36,6 @@ import { shareURL } from "../../../utils/sharing";
 import { textDirectionStyle } from "../../../utils/textDirection";
 import useWriteWithToast from "../../../utils/useWriteWithToast";
 
-const AnimatedFeather = Animated.createAnimatedComponent(Feather);
-
 type PostComponentProps = {
   post: Post;
   updatePost: (change: (current: Post) => Post) => void;
@@ -528,75 +526,77 @@ export default function PostComponent({
               </View>
               {showFeedVoteButtons && (
                 <View style={styles.feedVoteButtons}>
-                  <Touchable
-                    style={[
-                      styles.feedVoteButton,
-                      postCompactMode && styles.compactFeedVoteButton,
-                      post.userVote === VoteOption.UpVote && {
-                        backgroundColor: theme.upvote,
-                      },
-                    ]}
-                    hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      voteOnPost(VoteOption.UpVote);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      post.userVote === VoteOption.UpVote
-                        ? "Remove upvote"
-                        : "Upvote"
-                    }
-                    accessibilityState={{
-                      selected: post.userVote === VoteOption.UpVote,
-                    }}
-                  >
-                    <AnimatedFeather
-                      style={upBounce.style}
-                      name="arrow-up"
-                      size={postCompactMode ? 24 : 28}
-                      color={
+                  <Animated.View style={upBounce.style}>
+                    <Touchable
+                      style={[
+                        styles.feedVoteButton,
+                        postCompactMode && styles.compactFeedVoteButton,
+                        post.userVote === VoteOption.UpVote && {
+                          backgroundColor: theme.upvote,
+                        },
+                      ]}
+                      hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        voteOnPost(VoteOption.UpVote);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={
                         post.userVote === VoteOption.UpVote
-                          ? theme.text
-                          : theme.subtleText
+                          ? "Remove upvote"
+                          : "Upvote"
                       }
-                    />
-                  </Touchable>
+                      accessibilityState={{
+                        selected: post.userVote === VoteOption.UpVote,
+                      }}
+                    >
+                      <Feather
+                        name="arrow-up"
+                        size={postCompactMode ? 24 : 28}
+                        color={
+                          post.userVote === VoteOption.UpVote
+                            ? theme.text
+                            : theme.subtleText
+                        }
+                      />
+                    </Touchable>
+                  </Animated.View>
 
-                  <Touchable
-                    style={[
-                      styles.feedVoteButton,
-                      postCompactMode && styles.compactFeedVoteButton,
-                      post.userVote === VoteOption.DownVote && {
-                        backgroundColor: theme.downvote,
-                      },
-                    ]}
-                    hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      voteOnPost(VoteOption.DownVote);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      post.userVote === VoteOption.DownVote
-                        ? "Remove downvote"
-                        : "Downvote"
-                    }
-                    accessibilityState={{
-                      selected: post.userVote === VoteOption.DownVote,
-                    }}
-                  >
-                    <AnimatedFeather
-                      style={downBounce.style}
-                      name="arrow-down"
-                      size={postCompactMode ? 24 : 28}
-                      color={
+                  <Animated.View style={downBounce.style}>
+                    <Touchable
+                      style={[
+                        styles.feedVoteButton,
+                        postCompactMode && styles.compactFeedVoteButton,
+                        post.userVote === VoteOption.DownVote && {
+                          backgroundColor: theme.downvote,
+                        },
+                      ]}
+                      hitSlop={{ top: 3, bottom: 3, left: 3, right: 3 }}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        voteOnPost(VoteOption.DownVote);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={
                         post.userVote === VoteOption.DownVote
-                          ? theme.text
-                          : theme.subtleText
+                          ? "Remove downvote"
+                          : "Downvote"
                       }
-                    />
-                  </Touchable>
+                      accessibilityState={{
+                        selected: post.userVote === VoteOption.DownVote,
+                      }}
+                    >
+                      <Feather
+                        name="arrow-down"
+                        size={postCompactMode ? 24 : 28}
+                        color={
+                          post.userVote === VoteOption.DownVote
+                            ? theme.text
+                            : theme.subtleText
+                        }
+                      />
+                    </Touchable>
+                  </Animated.View>
                 </View>
               )}
             </View>

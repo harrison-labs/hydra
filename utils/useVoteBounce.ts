@@ -1,4 +1,5 @@
 import {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -12,9 +13,16 @@ export default function useVoteBounce() {
     transform: [{ scale: scale.value }],
   }));
   const bounce = () => {
+    cancelAnimation(scale);
+    scale.value = 1;
     scale.value = withSequence(
       withTiming(1.2, { duration: 75 }),
-      withSpring(1),
+      withSpring(1, {
+        stiffness: 500,
+        damping: 23,
+        mass: 0.7,
+        overshootClamping: false,
+      }),
     );
   };
   return { style, bounce };
