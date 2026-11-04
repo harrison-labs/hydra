@@ -77,7 +77,7 @@ export default function PostComponent({
   const seen = isPostSeen(post);
 
   const [_, rerender] = useState(0);
-  const pressVote = usePostVote(post, updatePost);
+  const pressVote = usePostVote(post);
   const upBounce = useVoteBounce();
   const downBounce = useVoteBounce();
   const voteOnPost = (direction: VoteOption) => {

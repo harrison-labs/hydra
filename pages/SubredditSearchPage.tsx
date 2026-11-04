@@ -32,6 +32,7 @@ export default function SubredditSearchPage({
     fullyLoaded,
     hitFilterLimit,
   } = useRedditDataState<Post>({
+    syncPostVotes: true,
     loadData: async (after) => await searchSubredditPosts(url, { after }),
     refreshDependencies: [searchText, sort, sortTime],
   });

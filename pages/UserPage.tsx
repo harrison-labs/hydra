@@ -49,6 +49,7 @@ export default function UserPage({ route }: StackPageProps<"UserPage">) {
     hitFilterLimit,
     accessFailure,
   } = useRedditDataState<UserContent>({
+    syncPostVotes: true,
     loadData: async (after) =>
       await getUserContent(url, { after, type: contentType }),
     refreshDependencies: [sort, sortTime, contentType],

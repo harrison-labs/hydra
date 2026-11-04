@@ -18,6 +18,7 @@ import * as ExpoOrientation from "expo-screen-orientation";
 
 import Tabs from "./tabs";
 import SubscribeToHydra from "../components/Modals/SubscribeToHydra";
+import { PostVoteProvider } from "../contexts/PostVoteContext";
 import { AccountProvider } from "../contexts/AccountContext";
 import { InboxProvider } from "../contexts/InboxContext";
 import { MediaViewerProvider } from "../contexts/MediaViewerContext";
@@ -120,26 +121,28 @@ function RootLayout() {
             <SubscriptionsProvider>
               <SettingsProvider>
                 <ToastProvider>
-                  <TabScrollProvider>
-                    <NavigationProvider>
-                      <ActionSheetProvider>
-                        <ActionSheetBgProvider>
-                          <InboxProvider>
-                            <ModalProvider>
-                              <MediaViewerProvider>
-                                <SubredditProvider>
-                                  <StartupModalProvider>
-                                    <SubscribeToHydra />
-                                    <Tabs />
-                                  </StartupModalProvider>
-                                </SubredditProvider>
-                              </MediaViewerProvider>
-                            </ModalProvider>
-                          </InboxProvider>
-                        </ActionSheetBgProvider>
-                      </ActionSheetProvider>
-                    </NavigationProvider>
-                  </TabScrollProvider>
+                  <PostVoteProvider>
+                    <TabScrollProvider>
+                      <NavigationProvider>
+                        <ActionSheetProvider>
+                          <ActionSheetBgProvider>
+                            <InboxProvider>
+                              <ModalProvider>
+                                <MediaViewerProvider>
+                                  <SubredditProvider>
+                                    <StartupModalProvider>
+                                      <SubscribeToHydra />
+                                      <Tabs />
+                                    </StartupModalProvider>
+                                  </SubredditProvider>
+                                </MediaViewerProvider>
+                              </ModalProvider>
+                            </InboxProvider>
+                          </ActionSheetBgProvider>
+                        </ActionSheetProvider>
+                      </NavigationProvider>
+                    </TabScrollProvider>
+                  </PostVoteProvider>
                 </ToastProvider>
               </SettingsProvider>
             </SubscriptionsProvider>

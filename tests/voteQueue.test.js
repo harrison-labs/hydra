@@ -1,5 +1,5 @@
 import { afterEach, expect, spyOn, test } from "bun:test";
-import { createVoteQueue, createVoteQueues } from "../utils/voteQueue";
+import { createVoteQueue } from "../utils/voteQueue";
 
 const flush = async () => {
   for (let i = 0; i < 8; i++) await Promise.resolve();
@@ -152,52 +152,4 @@ test("retired failures restore confirmation without delay or stale feedback", as
   expect(state.displayed.at(-1)).toBe(1);
   expect(state.errors).toHaveLength(0);
   expect(state.completed).toHaveLength(1);
-});
-
-test("A-B-A recycling reuses the active A request and serializes its latest vote", async () => {
-  const queues = createVoteQueues();
-  const states = {};
-  const get = (key) =>
-    queues.get(key, (settled) => {
-      states[key] = setup(0, settled);
-      return states[key].queue;
-    });
-  const firstA = get("account:A");
-  firstA.press(1);
-  get("account:B").press(1);
-  const returnedA = get("account:A");
-  expect(returnedA).toBe(firstA);
-  returnedA.press(-1);
-  expect(states["account:A"].requests.map((r) => r.vote)).toEqual([1]);
-  states["account:A"].requests[0].resolve();
-  await flush();
-  expect(states["account:A"].requests.map((r) => r.vote)).toEqual([1, -1]);
-  states["account:A"].requests[1].resolve();
-  states["account:B"].requests[0].resolve();
-  await flush();
-  expect(states["account:A"].displayed.at(-1)).toBe(-1);
-  expect(get("account:A")).not.toBe(firstA);
-});
-
-test("retired completion cannot remove a replacement operation", async () => {
-  const queues = createVoteQueues();
-  let old;
-  const first = queues.get("account:A", (settled) => {
-    old = setup(0, settled);
-    return old.queue;
-  });
-  first.press(1);
-  queues.retire();
-  const next = setup();
-  const replacement = queues.get("account:A", () => next.queue);
-  replacement.press(-1);
-  old.requests[0].resolve();
-  await flush();
-  expect(
-    queues.get("account:A", () => {
-      throw new Error("Replacement was lost");
-    }),
-  ).toBe(replacement);
-  next.requests[0].resolve();
-  await flush();
 });

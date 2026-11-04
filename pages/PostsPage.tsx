@@ -72,6 +72,7 @@ export default function PostsPage({
     hitFilterLimit,
     accessFailure,
   } = useRedditDataState<Post>({
+    syncPostVotes: true,
     loadData: async (after) => await getPosts(url, { after }),
     filterRules: [
       ...(shouldFilterSeen ? [filterSeenItems] : []),

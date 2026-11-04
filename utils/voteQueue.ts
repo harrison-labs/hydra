@@ -50,27 +50,3 @@ export function createVoteQueue(
     },
   };
 }
-
-/** A recycled row reuses its pending operation when it returns to the same post. */
-export function createVoteQueues() {
-  const queues = new Map<string, ReturnType<typeof createVoteQueue>>();
-  return {
-    get(
-      key: string,
-      create: (settled: () => void) => ReturnType<typeof createVoteQueue>,
-    ) {
-      let queue = queues.get(key);
-      if (!queue) {
-        queue = create(() => {
-          if (queues.get(key) === queue) queues.delete(key);
-        });
-        queues.set(key, queue);
-      }
-      return queue;
-    },
-    retire() {
-      for (const queue of queues.values()) queue.retire();
-      queues.clear();
-    },
-  };
-}

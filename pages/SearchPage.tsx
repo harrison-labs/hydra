@@ -44,6 +44,7 @@ export default function SearchPage() {
     fullyLoaded,
     hitFilterLimit,
   } = useRedditDataState<SearchResult>({
+    syncPostVotes: true,
     loadData: async (after) => {
       if (!search.current) {
         if (searchResults.length) {

@@ -75,11 +75,7 @@ export default function PostDetailsComponent({
 
   const contextDepth = Number(new RedditURL(url).getQueryParam("context") ?? 0);
 
-  const pressVote = usePostVote(postDetail, (change) =>
-    setPostDetail((current) =>
-      current?.name === postDetail.name ? change(current) : current,
-    ),
-  );
+  const pressVote = usePostVote(postDetail);
   const upBounce = useVoteBounce();
   const downBounce = useVoteBounce();
   const voteOnPost = (direction: VoteOption) => {
